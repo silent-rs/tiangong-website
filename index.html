@@ -1,0 +1,1036 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>天工 — 桌面级 AI 自动化中枢</title>
+  <meta name="description" content="面向个人工作流的桌面级 AI 自动化中枢：对话、规划、执行、记忆、工具调用和多智能体协作。">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+SC:wght@400;500;600;700;800&display=swap');
+
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg-primary: #0a0a1a;
+      --bg-secondary: #0f0f23;
+      --bg-card: #141428;
+      --bg-card-hover: #1a1a35;
+      --border: #1e1e3a;
+      --text-primary: #e8e8f0;
+      --text-secondary: #8888a8;
+      --text-muted: #555570;
+      --accent: #00d4ff;
+      --accent-dim: rgba(0, 212, 255, 0.15);
+      --accent-glow: rgba(0, 212, 255, 0.3);
+      --purple: #7c3aed;
+      --purple-dim: rgba(124, 58, 237, 0.15);
+      --green: #10b981;
+      --green-dim: rgba(16, 185, 129, 0.15);
+      --orange: #f59e0b;
+      --orange-dim: rgba(245, 158, 11, 0.15);
+      --pink: #ec4899;
+      --pink-dim: rgba(236, 72, 153, 0.15);
+      --max-width: 1200px;
+      --font-sans: 'Inter', 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.7;
+      overflow-x: hidden;
+    }
+
+    /* ── Utility ──────────────────────────────────────────── */
+
+    .container { max-width: var(--max-width); margin: 0 auto; padding: 0 24px; }
+
+    .gradient-text {
+      background: linear-gradient(135deg, var(--accent), var(--purple));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .section-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 16px;
+    }
+
+    .section-label::before {
+      content: '';
+      width: 20px;
+      height: 2px;
+      background: var(--accent);
+      border-radius: 1px;
+    }
+
+    .section-title {
+      font-size: 36px;
+      font-weight: 800;
+      line-height: 1.2;
+      margin-bottom: 16px;
+      letter-spacing: -0.02em;
+    }
+
+    .section-desc {
+      font-size: 17px;
+      color: var(--text-secondary);
+      max-width: 600px;
+      line-height: 1.8;
+    }
+
+    /* ── Nav ──────────────────────────────────────────────── */
+
+    nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      background: rgba(10, 10, 26, 0.8);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    nav .container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 64px;
+    }
+
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      color: var(--text-primary);
+    }
+
+    .nav-logo {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, var(--accent), var(--purple));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 16px;
+      color: white;
+    }
+
+    .nav-brand span { font-weight: 700; font-size: 18px; }
+
+    .nav-links { display: flex; align-items: center; gap: 32px; }
+
+    .nav-links a {
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+
+    .nav-links a:hover { color: var(--text-primary); }
+
+    .nav-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 20px;
+      background: var(--accent);
+      color: var(--bg-primary);
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+
+    .nav-cta:hover { background: #33ddff; transform: translateY(-1px); }
+
+    /* ── Hero ─────────────────────────────────────────────── */
+
+    .hero {
+      padding: 160px 0 100px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: -200px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 800px;
+      height: 800px;
+      background: radial-gradient(circle, var(--accent-dim) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .hero::after {
+      content: '';
+      position: absolute;
+      top: -100px;
+      right: -200px;
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, var(--purple-dim) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .hero .container { position: relative; z-index: 1; }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 16px;
+      background: var(--accent-dim);
+      border: 1px solid rgba(0, 212, 255, 0.2);
+      border-radius: 100px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--accent);
+      margin-bottom: 32px;
+    }
+
+    .hero-badge .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--green);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    .hero h1 {
+      font-size: 64px;
+      font-weight: 800;
+      line-height: 1.1;
+      letter-spacing: -0.03em;
+      margin-bottom: 24px;
+      max-width: 800px;
+    }
+
+    .hero-desc {
+      font-size: 20px;
+      color: var(--text-secondary);
+      max-width: 560px;
+      line-height: 1.8;
+      margin-bottom: 40px;
+    }
+
+    .hero-actions { display: flex; gap: 16px; margin-bottom: 64px; }
+
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 32px;
+      background: var(--accent);
+      color: var(--bg-primary);
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.2s;
+      border: none;
+      cursor: pointer;
+    }
+
+    .btn-primary:hover { background: #33ddff; transform: translateY(-2px); box-shadow: 0 8px 30px var(--accent-glow); }
+
+    .btn-secondary {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 32px;
+      background: var(--bg-card);
+      color: var(--text-primary);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+
+    .btn-secondary:hover { background: var(--bg-card-hover); border-color: var(--text-muted); }
+
+    .hero-image {
+      width: 100%;
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .hero-image img {
+      width: 100%;
+      display: block;
+      opacity: 0.85;
+    }
+
+    .hero-image::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 120px;
+      background: linear-gradient(transparent, var(--bg-primary));
+      pointer-events: none;
+    }
+
+    /* ── Stats ────────────────────────────────────────────── */
+
+    .stats {
+      padding: 60px 0;
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 32px;
+      text-align: center;
+    }
+
+    .stat-value {
+      font-size: 36px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+
+    .stat-label {
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin-top: 4px;
+    }
+
+    /* ── Features ─────────────────────────────────────────── */
+
+    .features { padding: 120px 0; }
+
+    .features-header { text-align: center; margin-bottom: 64px; }
+    .features-header .section-desc { margin: 0 auto; }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+    }
+
+    .feature-card {
+      padding: 32px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      transition: all 0.3s;
+    }
+
+    .feature-card:hover {
+      background: var(--bg-card-hover);
+      border-color: var(--text-muted);
+      transform: translateY(-4px);
+    }
+
+    .feature-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      margin-bottom: 20px;
+    }
+
+    .feature-card h3 {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .feature-card p {
+      font-size: 14px;
+      color: var(--text-secondary);
+      line-height: 1.7;
+    }
+
+    /* ── Architecture ─────────────────────────────────────── */
+
+    .architecture { padding: 120px 0; }
+
+    .arch-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 64px;
+      align-items: center;
+    }
+
+    .arch-flow {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .arch-step {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 16px 20px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      transition: all 0.3s;
+    }
+
+    .arch-step:hover { border-color: var(--accent); background: var(--bg-card-hover); }
+
+    .arch-step-num {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: var(--accent-dim);
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .arch-step-text { font-size: 15px; font-weight: 500; }
+    .arch-step-desc { font-size: 13px; color: var(--text-secondary); }
+
+    .arch-visual {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 40px;
+      position: relative;
+    }
+
+    .arch-layer {
+      padding: 16px;
+      border-radius: 10px;
+      text-align: center;
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+
+    .arch-layer:last-child { margin-bottom: 0; }
+
+    .arch-arrow {
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 18px;
+      margin: 4px 0;
+    }
+
+    /* ── Multi-Agent ──────────────────────────────────────── */
+
+    .multi-agent { padding: 120px 0; }
+
+    .ma-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 64px;
+      align-items: center;
+    }
+
+    .ma-demo {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+    }
+
+    .ma-tabs {
+      display: flex;
+      border-bottom: 1px solid var(--border);
+      background: rgba(0,0,0,0.2);
+    }
+
+    .ma-tab {
+      padding: 10px 20px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      border-bottom: 2px solid transparent;
+      cursor: default;
+    }
+
+    .ma-tab.active {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+      background: rgba(0, 212, 255, 0.05);
+    }
+
+    .ma-content { padding: 24px; }
+
+    .ma-message {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .ma-avatar {
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .ma-bubble {
+      background: rgba(255,255,255,0.04);
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 13px;
+      line-height: 1.6;
+      color: var(--text-secondary);
+    }
+
+    .ma-bubble strong { color: var(--text-primary); font-weight: 600; }
+
+    /* ── Automation ───────────────────────────────────────── */
+
+    .automation { padding: 120px 0; }
+
+    .auto-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+      margin-top: 48px;
+    }
+
+    .auto-card {
+      padding: 28px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      transition: all 0.3s;
+    }
+
+    .auto-card:hover { border-color: var(--text-muted); transform: translateY(-2px); }
+
+    .auto-card-icon {
+      font-size: 28px;
+      margin-bottom: 16px;
+    }
+
+    .auto-card h3 { font-size: 17px; font-weight: 700; margin-bottom: 8px; }
+    .auto-card p { font-size: 14px; color: var(--text-secondary); line-height: 1.7; }
+
+    .auto-card code {
+      display: inline-block;
+      margin-top: 12px;
+      padding: 4px 10px;
+      background: rgba(0,0,0,0.3);
+      border-radius: 6px;
+      font-size: 12px;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      color: var(--accent);
+    }
+
+    /* ── Install ──────────────────────────────────────────── */
+
+    .install { padding: 120px 0; }
+
+    .install-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 64px;
+      align-items: start;
+    }
+
+    .install-steps { display: flex; flex-direction: column; gap: 24px; }
+
+    .install-step {
+      display: flex;
+      gap: 16px;
+    }
+
+    .install-step-num {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: var(--accent-dim);
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 15px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .install-step h4 { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
+    .install-step p { font-size: 14px; color: var(--text-secondary); }
+
+    .terminal {
+      background: #0c0c1a;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .terminal-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 16px;
+      background: rgba(0,0,0,0.3);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .terminal-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+
+    .terminal-body {
+      padding: 20px;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 13px;
+      line-height: 2;
+    }
+
+    .terminal-body .prompt { color: var(--green); }
+    .terminal-body .cmd { color: var(--accent); }
+    .terminal-body .comment { color: var(--text-muted); }
+    .terminal-body .output { color: var(--text-secondary); }
+
+    /* ── Footer ───────────────────────────────────────────── */
+
+    footer {
+      padding: 48px 0;
+      border-top: 1px solid var(--border);
+    }
+
+    .footer-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .footer-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--text-secondary);
+      font-size: 14px;
+    }
+
+    .footer-links { display: flex; gap: 24px; }
+
+    .footer-links a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 14px;
+      transition: color 0.2s;
+    }
+
+    .footer-links a:hover { color: var(--text-primary); }
+
+    /* ── Responsive ───────────────────────────────────────── */
+
+    @media (max-width: 900px) {
+      .hero h1 { font-size: 40px; }
+      .hero-desc { font-size: 17px; }
+      .hero-actions { flex-direction: column; }
+      .features-grid { grid-template-columns: 1fr; }
+      .arch-layout, .ma-layout, .install-layout { grid-template-columns: 1fr; }
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .auto-grid { grid-template-columns: 1fr; }
+      .nav-links { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Nav ──────────────────────────────────────────────── -->
+
+<nav>
+  <div class="container">
+    <a href="#" class="nav-brand">
+      <div class="nav-logo">天</div>
+      <span>天工</span>
+    </a>
+    <div class="nav-links">
+      <a href="#features">核心能力</a>
+      <a href="#architecture">架构</a>
+      <a href="#multi-agent">多智能体</a>
+      <a href="#automation">自动化</a>
+      <a href="#install">安装</a>
+      <a href="https://github.com/silent-rs/silent-Tiangong" class="nav-cta" target="_blank">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+        GitHub
+      </a>
+    </div>
+  </div>
+</nav>
+
+<!-- ── Hero ─────────────────────────────────────────────── -->
+
+<section class="hero">
+  <div class="container">
+    <div class="hero-badge">
+      <span class="dot"></span>
+      v0.4.0 已发布 — 支持自动化触发层
+    </div>
+    <h1>
+      你的个人<br>
+      <span class="gradient-text">AI 自动化中枢</span>
+    </h1>
+    <p class="hero-desc">
+      天工不只是对话。它能读取你的工作区、拆解任务、调用工具、保存记忆，并在复杂任务中动态组建多智能体团队分工协作。
+    </p>
+    <div class="hero-actions">
+      <a href="#install" class="btn-primary">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+        下载安装
+      </a>
+      <a href="https://github.com/silent-rs/silent-Tiangong" class="btn-secondary" target="_blank">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 00-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0020 4.77 5.07 5.07 0 0019.91 1S18.73.65 16 2.48a13.38 13.38 0 00-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 005 4.77a5.44 5.44 0 00-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 009 18.13V22"/></svg>
+        查看源码
+      </a>
+    </div>
+    <div class="hero-image">
+      <img src="screenshot.jpg" alt="天工桌面应用截图" />
+    </div>
+  </div>
+</section>
+
+<!-- ── Stats ────────────────────────────────────────────── -->
+
+<section class="stats">
+  <div class="container">
+    <div class="stats-grid">
+      <div>
+        <div class="stat-value gradient-text">10+</div>
+        <div class="stat-label">独立 Crate 模块</div>
+      </div>
+      <div>
+        <div class="stat-value gradient-text">20+</div>
+        <div class="stat-label">内置工具能力</div>
+      </div>
+      <div>
+        <div class="stat-value gradient-text">3</div>
+        <div class="stat-label">运行入口 (GUI/CLI/Server)</div>
+      </div>
+      <div>
+        <div class="stat-value gradient-text">8</div>
+        <div class="stat-label">最大并发 Agent</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Features ─────────────────────────────────────────── -->
+
+<section class="features" id="features">
+  <div class="container">
+    <div class="features-header">
+      <div class="section-label">核心能力</div>
+      <h2 class="section-title">不只是聊天，是真正的<span class="gradient-text">执行引擎</span></h2>
+      <p class="section-desc">天工围绕真实工作区构建 Agent 能力闭环——从对话到规划、从执行到记忆，每一步都有工具支撑。</p>
+    </div>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon" style="background: var(--accent-dim); color: var(--accent);">⚡</div>
+        <h3>工具执行</h3>
+        <p>文件读写、命令执行、代码搜索、补丁应用、网页抓取——20+ 内置工具覆盖日常开发工作流。</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background: var(--purple-dim); color: var(--purple);">🧠</div>
+        <h3>长期记忆</h3>
+        <p>基于 SQLite + Tantivy + 向量索引，自动保存项目事实、偏好、决策和产物，跨会话按需回忆。</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background: var(--green-dim); color: var(--green);">🔌</div>
+        <h3>MCP 与 Skill</h3>
+        <p>支持 MCP 协议接入外部工具，本地 Skill 可安装、启停、按任务意图自动匹配和加载。</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background: var(--orange-dim); color: var(--orange);">🎬</div>
+        <h3>多媒体能力</h3>
+        <p>图片生成、视频生成、语音识别、语音合成——通过 Routing 层按需路由到合适的后端。</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background: var(--pink-dim); color: var(--pink);">🛡️</div>
+        <h3>权限治理</h3>
+        <p>桌面会话支持监督/信任模式切换，Server 模式使用 controller/observer 远程角色边界。</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background: var(--accent-dim); color: var(--accent);">🔄</div>
+        <h3>自动更新</h3>
+        <p>GitHub Release 分发，桌面设置页和命令行共用在线更新链路，一键升级到最新版本。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Architecture ─────────────────────────────────────── -->
+
+<section class="architecture" id="architecture">
+  <div class="container">
+    <div class="arch-layout">
+      <div>
+        <div class="section-label">技术架构</div>
+        <h2 class="section-title">Rust 驱动的<span class="gradient-text">高性能内核</span></h2>
+        <p class="section-desc" style="margin-bottom: 32px;">
+          Cargo workspace 多 crate 分离，核心引擎与前端、Server、媒体生成各自独立。同一个 <code style="color: var(--accent);">tiangong</code> 入口支持 GUI、CLI、Server 三种模式。
+        </p>
+        <div class="arch-flow">
+          <div class="arch-step">
+            <div class="arch-step-num">1</div>
+            <div>
+              <div class="arch-step-text">用户输入</div>
+              <div class="arch-step-desc">GUI / CLI / Server / IM Adapter / Webhook</div>
+            </div>
+          </div>
+          <div class="arch-step">
+            <div class="arch-step-num">2</div>
+            <div>
+              <div class="arch-step-text">会话与工作区上下文装配</div>
+              <div class="arch-step-desc">长期记忆注入、偏好加载、工具集准备</div>
+            </div>
+          </div>
+          <div class="arch-step">
+            <div class="arch-step-num">3</div>
+            <div>
+              <div class="arch-step-text">ReAct 循环</div>
+              <div class="arch-step-desc">推理 → 工具调用 → 观察 → 继续执行</div>
+            </div>
+          </div>
+          <div class="arch-step">
+            <div class="arch-step-num">4</div>
+            <div>
+              <div class="arch-step-text">结构化事件推送</div>
+              <div class="arch-step-desc">实时流式输出到 GUI / CLI / WebSocket</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="arch-visual">
+        <div class="arch-layer" style="background: var(--accent-dim); color: var(--accent);">🖥️ GUI (Tauri + React)</div>
+        <div class="arch-layer" style="background: var(--purple-dim); color: var(--purple);">⌨️ CLI (TUI)</div>
+        <div class="arch-layer" style="background: var(--green-dim); color: var(--green);">🌐 Server (HTTP + WebSocket)</div>
+        <div class="arch-arrow">↕</div>
+        <div class="arch-layer" style="background: rgba(255,255,255,0.06); color: var(--text-primary); border: 1px solid var(--border);">
+          <strong>tiangong-core</strong> — Agent 引擎 · 工具 · MCP · Skill · 多 Agent
+        </div>
+        <div class="arch-arrow">↕</div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;">
+          <div class="arch-layer" style="background: var(--orange-dim); color: var(--orange); font-size: 12px;">Memory</div>
+          <div class="arch-layer" style="background: var(--pink-dim); color: var(--pink); font-size: 12px;">Media</div>
+          <div class="arch-layer" style="background: var(--accent-dim); color: var(--accent); font-size: 12px;">LLM</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Multi-Agent ──────────────────────────────────────── -->
+
+<section class="multi-agent" id="multi-agent">
+  <div class="container">
+    <div class="ma-layout">
+      <div class="ma-demo">
+        <div class="ma-tabs">
+          <div class="ma-tab active">🏠 Main Agent</div>
+          <div class="ma-tab">👨‍💻 Developer</div>
+          <div class="ma-tab">🧪 Tester</div>
+        </div>
+        <div class="ma-content">
+          <div class="ma-message">
+            <div class="ma-avatar" style="background: var(--accent-dim); color: var(--accent);">U</div>
+            <div class="ma-bubble">帮我重构 <strong>parser.rs</strong>，添加错误恢复机制，然后写测试验证。</div>
+          </div>
+          <div class="ma-message">
+            <div class="ma-avatar" style="background: var(--purple-dim); color: var(--purple);">M</div>
+            <div class="ma-bubble">这个任务需要分工协作，我来组建团队：<strong>Developer</strong> 负责重构，<strong>Tester</strong> 负责验证。</div>
+          </div>
+          <div class="ma-message">
+            <div class="ma-avatar" style="background: var(--green-dim); color: var(--green);">D</div>
+            <div class="ma-bubble">已获取 <strong>parser.rs</strong> 文件锁。正在添加错误恢复机制，预计需要 3 处修改...</div>
+          </div>
+          <div class="ma-message">
+            <div class="ma-avatar" style="background: var(--orange-dim); color: var(--orange);">T</div>
+            <div class="ma-bubble">Developer 已完成修改，我开始编写测试用例。覆盖正常路径和 5 种错误场景。</div>
+          </div>
+          <div class="ma-message">
+            <div class="ma-avatar" style="background: var(--purple-dim); color: var(--purple);">M</div>
+            <div class="ma-bubble">✅ 团队任务完成。重构已通过全部测试，结果摘要已发送。</div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="section-label">多智能体协作</div>
+        <h2 class="section-title">复杂任务？<span class="gradient-text">组建团队</span></h2>
+        <p class="section-desc" style="margin-bottom: 24px;">
+          主 Agent 判断任务复杂度后，动态创建 PM、Developer、Tester、Researcher 等角色。Sub Agent 拥有独立上下文，通过消息通讯和文件锁协作。
+        </p>
+        <ul style="list-style: none; display: flex; flex-direction: column; gap: 12px;">
+          <li style="display: flex; align-items: center; gap: 10px; font-size: 14px; color: var(--text-secondary);">
+            <span style="color: var(--green);">✓</span> 动态创建和解散 Sub Agent
+          </li>
+          <li style="display: flex; align-items: center; gap: 10px; font-size: 14px; color: var(--text-secondary);">
+            <span style="color: var(--green);">✓</span> Agent 间消息通讯与广播
+          </li>
+          <li style="display: flex; align-items: center; gap: 10px; font-size: 14px; color: var(--text-secondary);">
+            <span style="color: var(--green);">✓</span> 文件编辑锁防止冲突
+          </li>
+          <li style="display: flex; align-items: center; gap: 10px; font-size: 14px; color: var(--text-secondary);">
+            <span style="color: var(--green);">✓</span> @提及直接与指定 Agent 对话
+          </li>
+          <li style="display: flex; align-items: center; gap: 10px; font-size: 14px; color: var(--text-secondary);">
+            <span style="color: var(--green);">✓</span> 并发控制与 Token 预算管理
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Automation ───────────────────────────────────────── -->
+
+<section class="automation" id="automation">
+  <div class="container">
+    <div class="features-header">
+      <div class="section-label">自动化触发层</div>
+      <h2 class="section-title">让 AI 主动<span class="gradient-text">为你工作</span></h2>
+      <p class="section-desc">不只是被动回答。通过 Cron 定时、Webhook 外部触发，让天工按计划自动执行任务。</p>
+    </div>
+    <div class="auto-grid">
+      <div class="auto-card">
+        <div class="auto-card-icon">⏰</div>
+        <h3>Cron 定时任务</h3>
+        <p>标准 Cron 表达式，Server 启动时自动恢复。支持关联已有会话复用上下文。</p>
+        <code>0 9 * * * → 每天早上 9 点</code>
+      </div>
+      <div class="auto-card">
+        <div class="auto-card-icon">🔗</div>
+        <h3>Webhook 触发</h3>
+        <p>外部系统通过 HTTP 端点触发执行，支持 HMAC-SHA256 签名验证，安全接入 GitHub、GitLab 等。</p>
+        <code>POST /api/v1/webhooks/:id/invoke</code>
+      </div>
+      <div class="auto-card">
+        <div class="auto-card-icon">📊</div>
+        <h3>执行历史追踪</h3>
+        <p>每次执行自动记录状态、耗时和结果摘要。前端管理界面支持查看、创建、启停和手动触发。</p>
+        <code>GET /api/v1/jobs/:id/runs</code>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Install ──────────────────────────────────────────── -->
+
+<section class="install" id="install">
+  <div class="container">
+    <div class="install-layout">
+      <div>
+        <div class="section-label">快速开始</div>
+        <h2 class="section-title">三步开始使用<span class="gradient-text">天工</span></h2>
+        <div class="install-steps">
+          <div class="install-step">
+            <div class="install-step-num">1</div>
+            <div>
+              <h4>下载安装</h4>
+              <p>从 GitHub Releases 下载对应系统的安装包。支持 macOS、Windows、Linux。</p>
+            </div>
+          </div>
+          <div class="install-step">
+            <div class="install-step-num">2</div>
+            <div>
+              <h4>配置模型</h4>
+              <p>在设置页面添加 API Key，推荐使用 DeepSeek 或智谱 GLM。也支持自定义供应商接入。</p>
+            </div>
+          </div>
+          <div class="install-step">
+            <div class="install-step-num">3</div>
+            <div>
+              <h4>开始对话</h4>
+              <p>打开天工，直接描述你的任务。天工会自动判断是否需要调用工具、创建 Agent 或执行命令。</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="terminal">
+          <div class="terminal-bar">
+            <div class="terminal-dot" style="background: #ff5f57;"></div>
+            <div class="terminal-dot" style="background: #febc2e;"></div>
+            <div class="terminal-dot" style="background: #28c840;"></div>
+          </div>
+          <div class="terminal-body">
+            <div><span class="comment"># 桌面 GUI 模式</span></div>
+            <div><span class="prompt">$</span> <span class="cmd">tiangong</span></div>
+            <div style="height: 8px;"></div>
+            <div><span class="comment"># CLI 命令行模式</span></div>
+            <div><span class="prompt">$</span> <span class="cmd">tiangong cli</span></div>
+            <div style="height: 8px;"></div>
+            <div><span class="comment"># Server 模式（后台运行）</span></div>
+            <div><span class="prompt">$</span> <span class="cmd">tiangong server -d</span></div>
+            <div><span class="output">Server 启动：http://127.0.0.1:8080</span></div>
+            <div style="height: 8px;"></div>
+            <div><span class="comment"># 检查更新</span></div>
+            <div><span class="prompt">$</span> <span class="cmd">tiangong update --check</span></div>
+            <div><span class="output">当前版本 v0.4.0，已是最新</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Footer ───────────────────────────────────────────── -->
+
+<footer>
+  <div class="container">
+    <div class="footer-content">
+      <div class="footer-brand">
+        <div class="nav-logo" style="width: 24px; height: 24px; font-size: 12px;">天</div>
+        <span>Silent-Tiangong · 面向个人工作流的桌面级 AI 自动化中枢</span>
+      </div>
+      <div class="footer-links">
+        <a href="https://github.com/silent-rs/silent-Tiangong" target="_blank">GitHub</a>
+        <a href="https://github.com/silent-rs/silent-Tiangong/releases" target="_blank">下载</a>
+        <a href="https://github.com/silent-rs/silent-Tiangong/issues" target="_blank">反馈</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
