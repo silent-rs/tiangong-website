@@ -9,6 +9,9 @@
   <meta property="og:title" content="天工 Tiangong — 以插件为核心的个人 AI Agent">
   <meta property="og:description" content="让 Agent 看见并操作你的电脑：Computer Use、嵌入式浏览器与终端，能力全部来自插件。">
   <meta property="og:image" content="assets/img/computer-use.jpg">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/img/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="assets/img/logo-192.png">
+  <link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png">
   <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
@@ -18,7 +21,7 @@
 <header class="nav" id="top">
   <div class="wrap nav-inner">
     <a class="brand" href="#top" aria-label="天工首页">
-      <span class="brand-mark">工</span>
+      <img class="brand-logo" src="assets/img/logo-64.png" width="32" height="32" alt="">
       <span class="brand-name">天工 <em>Tiangong</em></span>
     </a>
     <nav class="nav-links" aria-label="主导航">
@@ -41,6 +44,9 @@
   <section class="hero">
     <div class="hero-glow" aria-hidden="true"></div>
     <div class="wrap hero-inner">
+      <div class="hero-emblem reveal" aria-hidden="true">
+        <img src="assets/img/logo-192.png" width="112" height="112" alt="">
+      </div>
       <p class="eyebrow reveal"><span class="pulse"></span>开源 · Rust + Tauri · Apache-2.0</p>
       <h1 class="hero-title reveal">
         让 Agent<br>
@@ -353,7 +359,7 @@ tiangong server -d</code></pre>
 <footer class="footer">
   <div class="wrap footer-inner">
     <div class="brand">
-      <span class="brand-mark">工</span>
+      <img class="brand-logo" src="assets/img/logo-64.png" width="32" height="32" alt="">
       <span class="brand-name">天工 <em>Tiangong</em></span>
     </div>
     <nav aria-label="页脚">
