@@ -1,1036 +1,372 @@
 <!DOCTYPE html>
-<html lang="zh-CN" class="dark">
+<html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>天工 — 桌面级 AI 自动化中枢</title>
-  <meta name="description" content="面向个人工作流的桌面级 AI 自动化中枢：对话、规划、执行、记忆、工具调用和多智能体协作。">
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+SC:wght@400;500;600;700;800&display=swap');
-
-    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-
-    :root {
-      --bg-primary: #0a0a1a;
-      --bg-secondary: #0f0f23;
-      --bg-card: #141428;
-      --bg-card-hover: #1a1a35;
-      --border: #1e1e3a;
-      --text-primary: #e8e8f0;
-      --text-secondary: #8888a8;
-      --text-muted: #555570;
-      --accent: #00d4ff;
-      --accent-dim: rgba(0, 212, 255, 0.15);
-      --accent-glow: rgba(0, 212, 255, 0.3);
-      --purple: #7c3aed;
-      --purple-dim: rgba(124, 58, 237, 0.15);
-      --green: #10b981;
-      --green-dim: rgba(16, 185, 129, 0.15);
-      --orange: #f59e0b;
-      --orange-dim: rgba(245, 158, 11, 0.15);
-      --pink: #ec4899;
-      --pink-dim: rgba(236, 72, 153, 0.15);
-      --max-width: 1200px;
-      --font-sans: 'Inter', 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif;
-    }
-
-    html { scroll-behavior: smooth; }
-
-    body {
-      font-family: var(--font-sans);
-      background: var(--bg-primary);
-      color: var(--text-primary);
-      line-height: 1.7;
-      overflow-x: hidden;
-    }
-
-    /* ── Utility ──────────────────────────────────────────── */
-
-    .container { max-width: var(--max-width); margin: 0 auto; padding: 0 24px; }
-
-    .gradient-text {
-      background: linear-gradient(135deg, var(--accent), var(--purple));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-
-    .section-label {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 13px;
-      font-weight: 600;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: var(--accent);
-      margin-bottom: 16px;
-    }
-
-    .section-label::before {
-      content: '';
-      width: 20px;
-      height: 2px;
-      background: var(--accent);
-      border-radius: 1px;
-    }
-
-    .section-title {
-      font-size: 36px;
-      font-weight: 800;
-      line-height: 1.2;
-      margin-bottom: 16px;
-      letter-spacing: -0.02em;
-    }
-
-    .section-desc {
-      font-size: 17px;
-      color: var(--text-secondary);
-      max-width: 600px;
-      line-height: 1.8;
-    }
-
-    /* ── Nav ──────────────────────────────────────────────── */
-
-    nav {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      z-index: 100;
-      background: rgba(10, 10, 26, 0.8);
-      backdrop-filter: blur(20px);
-      border-bottom: 1px solid var(--border);
-    }
-
-    nav .container {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      height: 64px;
-    }
-
-    .nav-brand {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      text-decoration: none;
-      color: var(--text-primary);
-    }
-
-    .nav-logo {
-      width: 32px;
-      height: 32px;
-      border-radius: 8px;
-      background: linear-gradient(135deg, var(--accent), var(--purple));
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 800;
-      font-size: 16px;
-      color: white;
-    }
-
-    .nav-brand span { font-weight: 700; font-size: 18px; }
-
-    .nav-links { display: flex; align-items: center; gap: 32px; }
-
-    .nav-links a {
-      color: var(--text-secondary);
-      text-decoration: none;
-      font-size: 14px;
-      font-weight: 500;
-      transition: color 0.2s;
-    }
-
-    .nav-links a:hover { color: var(--text-primary); }
-
-    .nav-cta {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 8px 20px;
-      background: var(--accent);
-      color: var(--bg-primary);
-      border-radius: 8px;
-      font-size: 14px;
-      font-weight: 600;
-      text-decoration: none;
-      transition: all 0.2s;
-    }
-
-    .nav-cta:hover { background: #33ddff; transform: translateY(-1px); }
-
-    /* ── Hero ─────────────────────────────────────────────── */
-
-    .hero {
-      padding: 160px 0 100px;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .hero::before {
-      content: '';
-      position: absolute;
-      top: -200px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 800px;
-      height: 800px;
-      background: radial-gradient(circle, var(--accent-dim) 0%, transparent 70%);
-      pointer-events: none;
-    }
-
-    .hero::after {
-      content: '';
-      position: absolute;
-      top: -100px;
-      right: -200px;
-      width: 600px;
-      height: 600px;
-      background: radial-gradient(circle, var(--purple-dim) 0%, transparent 70%);
-      pointer-events: none;
-    }
-
-    .hero .container { position: relative; z-index: 1; }
-
-    .hero-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 6px 16px;
-      background: var(--accent-dim);
-      border: 1px solid rgba(0, 212, 255, 0.2);
-      border-radius: 100px;
-      font-size: 13px;
-      font-weight: 500;
-      color: var(--accent);
-      margin-bottom: 32px;
-    }
-
-    .hero-badge .dot {
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      background: var(--green);
-      animation: pulse 2s infinite;
-    }
-
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.4; }
-    }
-
-    .hero h1 {
-      font-size: 64px;
-      font-weight: 800;
-      line-height: 1.1;
-      letter-spacing: -0.03em;
-      margin-bottom: 24px;
-      max-width: 800px;
-    }
-
-    .hero-desc {
-      font-size: 20px;
-      color: var(--text-secondary);
-      max-width: 560px;
-      line-height: 1.8;
-      margin-bottom: 40px;
-    }
-
-    .hero-actions { display: flex; gap: 16px; margin-bottom: 64px; }
-
-    .btn-primary {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 14px 32px;
-      background: var(--accent);
-      color: var(--bg-primary);
-      border-radius: 12px;
-      font-size: 16px;
-      font-weight: 600;
-      text-decoration: none;
-      transition: all 0.2s;
-      border: none;
-      cursor: pointer;
-    }
-
-    .btn-primary:hover { background: #33ddff; transform: translateY(-2px); box-shadow: 0 8px 30px var(--accent-glow); }
-
-    .btn-secondary {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 14px 32px;
-      background: var(--bg-card);
-      color: var(--text-primary);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      font-size: 16px;
-      font-weight: 600;
-      text-decoration: none;
-      transition: all 0.2s;
-    }
-
-    .btn-secondary:hover { background: var(--bg-card-hover); border-color: var(--text-muted); }
-
-    .hero-image {
-      width: 100%;
-      border-radius: 16px;
-      border: 1px solid var(--border);
-      overflow: hidden;
-      position: relative;
-    }
-
-    .hero-image img {
-      width: 100%;
-      display: block;
-      opacity: 0.85;
-    }
-
-    .hero-image::after {
-      content: '';
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      height: 120px;
-      background: linear-gradient(transparent, var(--bg-primary));
-      pointer-events: none;
-    }
-
-    /* ── Stats ────────────────────────────────────────────── */
-
-    .stats {
-      padding: 60px 0;
-      border-top: 1px solid var(--border);
-      border-bottom: 1px solid var(--border);
-    }
-
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 32px;
-      text-align: center;
-    }
-
-    .stat-value {
-      font-size: 36px;
-      font-weight: 800;
-      letter-spacing: -0.02em;
-    }
-
-    .stat-label {
-      font-size: 14px;
-      color: var(--text-secondary);
-      margin-top: 4px;
-    }
-
-    /* ── Features ─────────────────────────────────────────── */
-
-    .features { padding: 120px 0; }
-
-    .features-header { text-align: center; margin-bottom: 64px; }
-    .features-header .section-desc { margin: 0 auto; }
-
-    .features-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 24px;
-    }
-
-    .feature-card {
-      padding: 32px;
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      transition: all 0.3s;
-    }
-
-    .feature-card:hover {
-      background: var(--bg-card-hover);
-      border-color: var(--text-muted);
-      transform: translateY(-4px);
-    }
-
-    .feature-icon {
-      width: 48px;
-      height: 48px;
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 22px;
-      margin-bottom: 20px;
-    }
-
-    .feature-card h3 {
-      font-size: 18px;
-      font-weight: 700;
-      margin-bottom: 8px;
-    }
-
-    .feature-card p {
-      font-size: 14px;
-      color: var(--text-secondary);
-      line-height: 1.7;
-    }
-
-    /* ── Architecture ─────────────────────────────────────── */
-
-    .architecture { padding: 120px 0; }
-
-    .arch-layout {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 64px;
-      align-items: center;
-    }
-
-    .arch-flow {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    .arch-step {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      padding: 16px 20px;
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      transition: all 0.3s;
-    }
-
-    .arch-step:hover { border-color: var(--accent); background: var(--bg-card-hover); }
-
-    .arch-step-num {
-      width: 32px;
-      height: 32px;
-      border-radius: 8px;
-      background: var(--accent-dim);
-      color: var(--accent);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 14px;
-      font-weight: 700;
-      flex-shrink: 0;
-    }
-
-    .arch-step-text { font-size: 15px; font-weight: 500; }
-    .arch-step-desc { font-size: 13px; color: var(--text-secondary); }
-
-    .arch-visual {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 40px;
-      position: relative;
-    }
-
-    .arch-layer {
-      padding: 16px;
-      border-radius: 10px;
-      text-align: center;
-      font-size: 14px;
-      font-weight: 600;
-      margin-bottom: 12px;
-    }
-
-    .arch-layer:last-child { margin-bottom: 0; }
-
-    .arch-arrow {
-      text-align: center;
-      color: var(--text-muted);
-      font-size: 18px;
-      margin: 4px 0;
-    }
-
-    /* ── Multi-Agent ──────────────────────────────────────── */
-
-    .multi-agent { padding: 120px 0; }
-
-    .ma-layout {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 64px;
-      align-items: center;
-    }
-
-    .ma-demo {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      overflow: hidden;
-    }
-
-    .ma-tabs {
-      display: flex;
-      border-bottom: 1px solid var(--border);
-      background: rgba(0,0,0,0.2);
-    }
-
-    .ma-tab {
-      padding: 10px 20px;
-      font-size: 13px;
-      font-weight: 500;
-      color: var(--text-secondary);
-      border-bottom: 2px solid transparent;
-      cursor: default;
-    }
-
-    .ma-tab.active {
-      color: var(--accent);
-      border-bottom-color: var(--accent);
-      background: rgba(0, 212, 255, 0.05);
-    }
-
-    .ma-content { padding: 24px; }
-
-    .ma-message {
-      display: flex;
-      gap: 12px;
-      margin-bottom: 16px;
-    }
-
-    .ma-avatar {
-      width: 28px;
-      height: 28px;
-      border-radius: 6px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 12px;
-      font-weight: 700;
-      flex-shrink: 0;
-    }
-
-    .ma-bubble {
-      background: rgba(255,255,255,0.04);
-      border-radius: 8px;
-      padding: 10px 14px;
-      font-size: 13px;
-      line-height: 1.6;
-      color: var(--text-secondary);
-    }
-
-    .ma-bubble strong { color: var(--text-primary); font-weight: 600; }
-
-    /* ── Automation ───────────────────────────────────────── */
-
-    .automation { padding: 120px 0; }
-
-    .auto-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 24px;
-      margin-top: 48px;
-    }
-
-    .auto-card {
-      padding: 28px;
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      transition: all 0.3s;
-    }
-
-    .auto-card:hover { border-color: var(--text-muted); transform: translateY(-2px); }
-
-    .auto-card-icon {
-      font-size: 28px;
-      margin-bottom: 16px;
-    }
-
-    .auto-card h3 { font-size: 17px; font-weight: 700; margin-bottom: 8px; }
-    .auto-card p { font-size: 14px; color: var(--text-secondary); line-height: 1.7; }
-
-    .auto-card code {
-      display: inline-block;
-      margin-top: 12px;
-      padding: 4px 10px;
-      background: rgba(0,0,0,0.3);
-      border-radius: 6px;
-      font-size: 12px;
-      font-family: 'SF Mono', 'Fira Code', monospace;
-      color: var(--accent);
-    }
-
-    /* ── Install ──────────────────────────────────────────── */
-
-    .install { padding: 120px 0; }
-
-    .install-layout {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 64px;
-      align-items: start;
-    }
-
-    .install-steps { display: flex; flex-direction: column; gap: 24px; }
-
-    .install-step {
-      display: flex;
-      gap: 16px;
-    }
-
-    .install-step-num {
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-      background: var(--accent-dim);
-      color: var(--accent);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 15px;
-      font-weight: 700;
-      flex-shrink: 0;
-    }
-
-    .install-step h4 { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
-    .install-step p { font-size: 14px; color: var(--text-secondary); }
-
-    .terminal {
-      background: #0c0c1a;
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      overflow: hidden;
-    }
-
-    .terminal-bar {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 12px 16px;
-      background: rgba(0,0,0,0.3);
-      border-bottom: 1px solid var(--border);
-    }
-
-    .terminal-dot {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-    }
-
-    .terminal-body {
-      padding: 20px;
-      font-family: 'SF Mono', 'Fira Code', monospace;
-      font-size: 13px;
-      line-height: 2;
-    }
-
-    .terminal-body .prompt { color: var(--green); }
-    .terminal-body .cmd { color: var(--accent); }
-    .terminal-body .comment { color: var(--text-muted); }
-    .terminal-body .output { color: var(--text-secondary); }
-
-    /* ── Footer ───────────────────────────────────────────── */
-
-    footer {
-      padding: 48px 0;
-      border-top: 1px solid var(--border);
-    }
-
-    .footer-content {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .footer-brand {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      color: var(--text-secondary);
-      font-size: 14px;
-    }
-
-    .footer-links { display: flex; gap: 24px; }
-
-    .footer-links a {
-      color: var(--text-muted);
-      text-decoration: none;
-      font-size: 14px;
-      transition: color 0.2s;
-    }
-
-    .footer-links a:hover { color: var(--text-primary); }
-
-    /* ── Responsive ───────────────────────────────────────── */
-
-    @media (max-width: 900px) {
-      .hero h1 { font-size: 40px; }
-      .hero-desc { font-size: 17px; }
-      .hero-actions { flex-direction: column; }
-      .features-grid { grid-template-columns: 1fr; }
-      .arch-layout, .ma-layout, .install-layout { grid-template-columns: 1fr; }
-      .stats-grid { grid-template-columns: repeat(2, 1fr); }
-      .auto-grid { grid-template-columns: 1fr; }
-      .nav-links { display: none; }
-    }
-  </style>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>天工 Tiangong — 以插件为核心的个人 AI Agent</title>
+  <meta name="description" content="天工是基于 Rust 与 Tauri 的个人 AI Agent 宿主。Computer Use、嵌入式浏览器、嵌入式终端、长期记忆、持久 Subagent 等能力全部由插件提供，按需安装。">
+  <meta name="theme-color" content="#07080c">
+  <meta property="og:title" content="天工 Tiangong — 以插件为核心的个人 AI Agent">
+  <meta property="og:description" content="让 Agent 看见并操作你的电脑：Computer Use、嵌入式浏览器与终端，能力全部来自插件。">
+  <meta property="og:image" content="assets/img/computer-use.jpg">
+  <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
 
-<!-- ── Nav ──────────────────────────────────────────────── -->
+<div class="grain" aria-hidden="true"></div>
 
-<nav>
-  <div class="container">
-    <a href="#" class="nav-brand">
-      <div class="nav-logo">天</div>
-      <span>天工</span>
+<header class="nav" id="top">
+  <div class="wrap nav-inner">
+    <a class="brand" href="#top" aria-label="天工首页">
+      <span class="brand-mark">工</span>
+      <span class="brand-name">天工 <em>Tiangong</em></span>
     </a>
-    <div class="nav-links">
-      <a href="#features">核心能力</a>
-      <a href="#architecture">架构</a>
-      <a href="#multi-agent">多智能体</a>
-      <a href="#automation">自动化</a>
+    <nav class="nav-links" aria-label="主导航">
+      <a href="#computer-use">Computer Use</a>
+      <a href="#workspace">浏览器与终端</a>
+      <a href="#catalog">插件目录</a>
+      <a href="#host">架构</a>
       <a href="#install">安装</a>
-      <a href="https://github.com/silent-rs/silent-Tiangong" class="nav-cta" target="_blank">
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
-        GitHub
-      </a>
-    </div>
+    </nav>
+    <a class="nav-gh" href="https://github.com/silent-rs/Tiangong" target="_blank" rel="noopener">
+      <svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+      <span>GitHub</span>
+    </a>
   </div>
-</nav>
+</header>
 
-<!-- ── Hero ─────────────────────────────────────────────── -->
+<main>
 
-<section class="hero">
-  <div class="container">
-    <div class="hero-badge">
-      <span class="dot"></span>
-      v0.4.0 已发布 — 支持自动化触发层
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-glow" aria-hidden="true"></div>
+    <div class="wrap hero-inner">
+      <p class="eyebrow reveal"><span class="pulse"></span>开源 · Rust + Tauri · Apache-2.0</p>
+      <h1 class="hero-title reveal">
+        让 Agent<br>
+        <span class="ink">看见并操作</span><span class="nowrap">你的电脑</span>
+      </h1>
+      <p class="hero-sub reveal">
+        天工是以插件为核心的个人 AI Agent。主程序只负责 Agent 循环、模型接入、插件运行时与沙箱；
+        操作桌面应用、浏览网页、执行命令、长期记忆、多智能体协作——全部由插件提供，按需安装。
+      </p>
+      <div class="hero-cta reveal">
+        <a class="btn btn-solid" href="#install">下载天工</a>
+        <a class="btn btn-ghost" href="#computer-use">观看 Computer Use 演示 <span aria-hidden="true">→</span></a>
+      </div>
+
+      <figure class="hero-stage reveal">
+        <div class="window">
+          <div class="window-bar">
+            <span></span><span></span><span></span>
+            <p>天工 · Computer Use 正在操作「计算器」</p>
+          </div>
+          <video class="hero-video" src="assets/video/computer-use.mp4" poster="assets/img/computer-use.jpg"
+                 autoplay muted loop playsinline preload="metadata" aria-label="Computer Use 操作计算器的 macOS 系统录屏"></video>
+        </div>
+        <figcaption>macOS 系统录屏，2 倍速。左侧是天工对话与工具调用，右侧是被 Agent 操作的原生应用。</figcaption>
+      </figure>
     </div>
-    <h1>
-      你的个人<br>
-      <span class="gradient-text">AI 自动化中枢</span>
-    </h1>
-    <p class="hero-desc">
-      天工不只是对话。它能读取你的工作区、拆解任务、调用工具、保存记忆，并在复杂任务中动态组建多智能体团队分工协作。
-    </p>
-    <div class="hero-actions">
-      <a href="#install" class="btn-primary">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
-        下载安装
-      </a>
-      <a href="https://github.com/silent-rs/silent-Tiangong" class="btn-secondary" target="_blank">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 00-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0020 4.77 5.07 5.07 0 0019.91 1S18.73.65 16 2.48a13.38 13.38 0 00-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 005 4.77a5.44 5.44 0 00-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 009 18.13V22"/></svg>
-        查看源码
-      </a>
+  </section>
+
+  <!-- Numbers -->
+  <section class="facts">
+    <div class="wrap facts-grid">
+      <div class="fact reveal"><strong data-count="plugins">19</strong><span>官方插件</span></div>
+      <div class="fact reveal"><strong>3</strong><span>桌面平台：macOS · Windows · Linux</span></div>
+      <div class="fact reveal"><strong>5</strong><span>插件形态：UI · TS · Node · WASM · 混合</span></div>
+      <div class="fact reveal"><strong>OS 级</strong><span>沙箱：Seatbelt · bubblewrap · AppContainer</span></div>
     </div>
-    <div class="hero-image">
-      <img src="screenshot.jpg" alt="天工桌面应用截图" />
-    </div>
-  </div>
-</section>
+  </section>
 
-<!-- ── Stats ────────────────────────────────────────────── -->
-
-<section class="stats">
-  <div class="container">
-    <div class="stats-grid">
-      <div>
-        <div class="stat-value gradient-text">10+</div>
-        <div class="stat-label">独立 Crate 模块</div>
-      </div>
-      <div>
-        <div class="stat-value gradient-text">20+</div>
-        <div class="stat-label">内置工具能力</div>
-      </div>
-      <div>
-        <div class="stat-value gradient-text">3</div>
-        <div class="stat-label">运行入口 (GUI/CLI/Server)</div>
-      </div>
-      <div>
-        <div class="stat-value gradient-text">8</div>
-        <div class="stat-label">最大并发 Agent</div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ── Features ─────────────────────────────────────────── -->
-
-<section class="features" id="features">
-  <div class="container">
-    <div class="features-header">
-      <div class="section-label">核心能力</div>
-      <h2 class="section-title">不只是聊天，是真正的<span class="gradient-text">执行引擎</span></h2>
-      <p class="section-desc">天工围绕真实工作区构建 Agent 能力闭环——从对话到规划、从执行到记忆，每一步都有工具支撑。</p>
-    </div>
-    <div class="features-grid">
-      <div class="feature-card">
-        <div class="feature-icon" style="background: var(--accent-dim); color: var(--accent);">⚡</div>
-        <h3>工具执行</h3>
-        <p>文件读写、命令执行、代码搜索、补丁应用、网页抓取——20+ 内置工具覆盖日常开发工作流。</p>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon" style="background: var(--purple-dim); color: var(--purple);">🧠</div>
-        <h3>长期记忆</h3>
-        <p>基于 SQLite + Tantivy + 向量索引，自动保存项目事实、偏好、决策和产物，跨会话按需回忆。</p>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon" style="background: var(--green-dim); color: var(--green);">🔌</div>
-        <h3>MCP 与 Skill</h3>
-        <p>支持 MCP 协议接入外部工具，本地 Skill 可安装、启停、按任务意图自动匹配和加载。</p>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon" style="background: var(--orange-dim); color: var(--orange);">🎬</div>
-        <h3>多媒体能力</h3>
-        <p>图片生成、视频生成、语音识别、语音合成——通过 Routing 层按需路由到合适的后端。</p>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon" style="background: var(--pink-dim); color: var(--pink);">🛡️</div>
-        <h3>权限治理</h3>
-        <p>桌面会话支持监督/信任模式切换，Server 模式使用 controller/observer 远程角色边界。</p>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon" style="background: var(--accent-dim); color: var(--accent);">🔄</div>
-        <h3>自动更新</h3>
-        <p>GitHub Release 分发，桌面设置页和命令行共用在线更新链路，一键升级到最新版本。</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ── Architecture ─────────────────────────────────────── -->
-
-<section class="architecture" id="architecture">
-  <div class="container">
-    <div class="arch-layout">
-      <div>
-        <div class="section-label">技术架构</div>
-        <h2 class="section-title">Rust 驱动的<span class="gradient-text">高性能内核</span></h2>
-        <p class="section-desc" style="margin-bottom: 32px;">
-          Cargo workspace 多 crate 分离，核心引擎与前端、Server、媒体生成各自独立。同一个 <code style="color: var(--accent);">tiangong</code> 入口支持 GUI、CLI、Server 三种模式。
+  <!-- Computer Use -->
+  <section class="section cu" id="computer-use">
+    <div class="wrap">
+      <header class="section-head reveal">
+        <p class="kicker"><span class="tag tag-hot">首推插件</span>computer-use</p>
+        <h2>浏览器和终端之外，<br>工作还发生在每一个原生应用里。</h2>
+        <p class="lead">
+          微信、飞书、系统设置、设计工具、自绘界面的客户端……Computer Use 让 Agent 像人一样操作它们：
+          唤起、观察、点击、输入，每一步都看得见，你随时可以接管。
         </p>
-        <div class="arch-flow">
-          <div class="arch-step">
-            <div class="arch-step-num">1</div>
-            <div>
-              <div class="arch-step-text">用户输入</div>
-              <div class="arch-step-desc">GUI / CLI / Server / IM Adapter / Webhook</div>
-            </div>
-          </div>
-          <div class="arch-step">
-            <div class="arch-step-num">2</div>
-            <div>
-              <div class="arch-step-text">会话与工作区上下文装配</div>
-              <div class="arch-step-desc">长期记忆注入、偏好加载、工具集准备</div>
-            </div>
-          </div>
-          <div class="arch-step">
-            <div class="arch-step-num">3</div>
-            <div>
-              <div class="arch-step-text">ReAct 循环</div>
-              <div class="arch-step-desc">推理 → 工具调用 → 观察 → 继续执行</div>
-            </div>
-          </div>
-          <div class="arch-step">
-            <div class="arch-step-num">4</div>
-            <div>
-              <div class="arch-step-text">结构化事件推送</div>
-              <div class="arch-step-desc">实时流式输出到 GUI / CLI / WebSocket</div>
-            </div>
+      </header>
+
+      <div class="cu-layout">
+        <div class="cu-video reveal">
+          <div class="window window-lg">
+            <div class="window-bar"><span></span><span></span><span></span><p>系统录屏 · 2×</p></div>
+            <video src="assets/video/computer-use.mp4" poster="assets/img/computer-use.jpg"
+                   controls muted loop playsinline preload="none" aria-label="Computer Use 演示视频"></video>
           </div>
         </div>
+
+        <ol class="cu-steps">
+          <li class="reveal">
+            <span class="step-no">01</span>
+            <div>
+              <h3>一句话唤起</h3>
+              <p>按应用名唤起或启动应用（支持「微信」这类中文名），自动与天工窗口分屏；输入区「恢复窗口」一键还原。</p>
+            </div>
+          </li>
+          <li class="reveal">
+            <span class="step-no">02</span>
+            <div>
+              <h3>看得见界面</h3>
+              <p>截取窗口、区域或全屏，直接作为图片交给模型；坐标可直接换算为点击位置，不依赖控件是否暴露无障碍信息。</p>
+            </div>
+          </li>
+          <li class="reveal">
+            <span class="step-no">03</span>
+            <div>
+              <h3>真实键鼠操作</h3>
+              <p>系统级键鼠合成：点击、拖拽、滚动、组合键，中文输入不经输入法；操作后可自动截图确认结果。</p>
+            </div>
+          </li>
+          <li class="reveal">
+            <span class="step-no">04</span>
+            <div>
+              <h3>过程全程可见</h3>
+              <p>天工虚拟指针从系统鼠标位置分身出现、演示每一步，按键以 HUD 卡片显示。Agent 做了什么，一目了然。</p>
+            </div>
+          </li>
+          <li class="reveal">
+            <span class="step-no">05</span>
+            <div>
+              <h3>语义控件操作</h3>
+              <p>原生控件可读取无障碍树，执行按下、聚焦、赋值、勾选等语义动作，比坐标点击更稳。</p>
+            </div>
+          </li>
+        </ol>
       </div>
-      <div class="arch-visual">
-        <div class="arch-layer" style="background: var(--accent-dim); color: var(--accent);">🖥️ GUI (Tauri + React)</div>
-        <div class="arch-layer" style="background: var(--purple-dim); color: var(--purple);">⌨️ CLI (TUI)</div>
-        <div class="arch-layer" style="background: var(--green-dim); color: var(--green);">🌐 Server (HTTP + WebSocket)</div>
-        <div class="arch-arrow">↕</div>
-        <div class="arch-layer" style="background: rgba(255,255,255,0.06); color: var(--text-primary); border: 1px solid var(--border);">
-          <strong>tiangong-core</strong> — Agent 引擎 · 工具 · MCP · Skill · 多 Agent
+
+      <div class="cu-bottom">
+        <div class="prompts reveal">
+          <p class="mini-title">你可以这样说</p>
+          <ul>
+            <li>「打开微信，把『项目群』今天的消息总结一下」</li>
+            <li>「在系统设置里把显示器切到深色模式」</li>
+            <li>「打开飞书日历，看看我明天下午有哪些会」</li>
+          </ul>
         </div>
-        <div class="arch-arrow">↕</div>
-        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;">
-          <div class="arch-layer" style="background: var(--orange-dim); color: var(--orange); font-size: 12px;">Memory</div>
-          <div class="arch-layer" style="background: var(--pink-dim); color: var(--pink); font-size: 12px;">Media</div>
-          <div class="arch-layer" style="background: var(--accent-dim); color: var(--accent); font-size: 12px;">LLM</div>
+
+        <div class="matrix reveal">
+          <p class="mini-title">平台支持</p>
+          <table>
+            <thead>
+              <tr><th>能力</th><th>macOS</th><th>Windows</th><th>Linux</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>唤起应用 · 自动分屏</td><td class="ok">●</td><td class="ok">●</td><td class="no">—</td></tr>
+              <tr><td>截图注入模型上下文</td><td class="ok">●</td><td class="ok">●</td><td class="no">—</td></tr>
+              <tr><td>键鼠输入</td><td class="ok">●</td><td class="ok">●</td><td class="no">—</td></tr>
+              <tr><td>虚拟指针 · 按键 HUD</td><td class="ok">●</td><td class="ok">●</td><td class="no">—</td></tr>
+              <tr><td>无障碍控件树与语义动作</td><td class="ok">●</td><td class="ok">●</td><td class="part">◐</td></tr>
+            </tbody>
+          </table>
+          <p class="note">
+            <strong>Linux 支持不足：</strong>目前仅通过 AT-SPI2 支持控件树读取与语义动作，适用于 GTK、Qt、Electron 等暴露无障碍信息的应用；
+            唤起、截图、键鼠、分屏尚未实现，自绘界面应用基本无法操作。macOS 首次使用需授予「辅助功能」与「屏幕录制」权限。
+          </p>
         </div>
       </div>
     </div>
-  </div>
-</section>
+  </section>
 
-<!-- ── Multi-Agent ──────────────────────────────────────── -->
+  <!-- Browser & Terminal -->
+  <section class="section ws" id="workspace">
+    <div class="wrap">
+      <header class="section-head reveal">
+        <p class="kicker"><span class="tag">推荐插件</span>browser · terminal</p>
+        <h2>和 Agent 共用同一个页面、同一个终端。</h2>
+        <p class="lead">它们就在天工的拓展区里。Agent 在做什么，你看得见；你接手了什么，Agent 也感知得到。</p>
+      </header>
 
-<section class="multi-agent" id="multi-agent">
-  <div class="container">
-    <div class="ma-layout">
-      <div class="ma-demo">
-        <div class="ma-tabs">
-          <div class="ma-tab active">🏠 Main Agent</div>
-          <div class="ma-tab">👨‍💻 Developer</div>
-          <div class="ma-tab">🧪 Tester</div>
-        </div>
-        <div class="ma-content">
-          <div class="ma-message">
-            <div class="ma-avatar" style="background: var(--accent-dim); color: var(--accent);">U</div>
-            <div class="ma-bubble">帮我重构 <strong>parser.rs</strong>，添加错误恢复机制，然后写测试验证。</div>
+      <div class="ws-grid">
+        <article class="ws-card reveal">
+          <div class="shot"><img src="assets/img/browser.jpg" alt="天工嵌入式浏览器打开 GitHub 页面" loading="lazy"></div>
+          <div class="ws-body">
+            <h3>嵌入式浏览器 <code>browser</code></h3>
+            <ul>
+              <li>打开网页、读取正文；超长页面保留头尾，按需分段读取或关键词搜索</li>
+              <li>查询 DOM、填写表单、点击元素，处理需要登录态的后台</li>
+              <li>你手动浏览、登录、点击时，Agent 感知页面变化并接着做</li>
+            </ul>
           </div>
-          <div class="ma-message">
-            <div class="ma-avatar" style="background: var(--purple-dim); color: var(--purple);">M</div>
-            <div class="ma-bubble">这个任务需要分工协作，我来组建团队：<strong>Developer</strong> 负责重构，<strong>Tester</strong> 负责验证。</div>
+        </article>
+        <article class="ws-card reveal">
+          <div class="shot"><img src="assets/img/terminal.jpg" alt="天工嵌入式终端执行命令" loading="lazy"></div>
+          <div class="ws-body">
+            <h3>嵌入式终端 <code>terminal</code></h3>
+            <ul>
+              <li>命令与脚本走真实 PTY，输出实时显示，长任务随时查看进度</li>
+              <li>终端按会话隔离，自动复用空闲终端，支持交互式程序</li>
+              <li>你可以在同一个终端里手动操作，与 Agent 交替使用</li>
+            </ul>
           </div>
-          <div class="ma-message">
-            <div class="ma-avatar" style="background: var(--green-dim); color: var(--green);">D</div>
-            <div class="ma-bubble">已获取 <strong>parser.rs</strong> 文件锁。正在添加错误恢复机制，预计需要 3 处修改...</div>
-          </div>
-          <div class="ma-message">
-            <div class="ma-avatar" style="background: var(--orange-dim); color: var(--orange);">T</div>
-            <div class="ma-bubble">Developer 已完成修改，我开始编写测试用例。覆盖正常路径和 5 种错误场景。</div>
-          </div>
-          <div class="ma-message">
-            <div class="ma-avatar" style="background: var(--purple-dim); color: var(--purple);">M</div>
-            <div class="ma-bubble">✅ 团队任务完成。重构已通过全部测试，结果摘要已发送。</div>
-          </div>
-        </div>
+        </article>
       </div>
-      <div>
-        <div class="section-label">多智能体协作</div>
-        <h2 class="section-title">复杂任务？<span class="gradient-text">组建团队</span></h2>
-        <p class="section-desc" style="margin-bottom: 24px;">
-          主 Agent 判断任务复杂度后，动态创建 PM、Developer、Tester、Researcher 等角色。Sub Agent 拥有独立上下文，通过消息通讯和文件锁协作。
+    </div>
+  </section>
+
+  <!-- Catalog -->
+  <section class="section catalog" id="catalog">
+    <div class="wrap">
+      <header class="section-head reveal">
+        <p class="kicker"><span class="tag">插件目录</span>Official catalog</p>
+        <h2>Agent 能做什么，<br>取决于你装了哪些插件。</h2>
+        <p class="lead">
+          每个插件独立构建、签名和发布，在「设置 → 插件管理」中一键安装与启停。下面的列表来自官方插件目录。
         </p>
-        <ul style="list-style: none; display: flex; flex-direction: column; gap: 12px;">
-          <li style="display: flex; align-items: center; gap: 10px; font-size: 14px; color: var(--text-secondary);">
-            <span style="color: var(--green);">✓</span> 动态创建和解散 Sub Agent
-          </li>
-          <li style="display: flex; align-items: center; gap: 10px; font-size: 14px; color: var(--text-secondary);">
-            <span style="color: var(--green);">✓</span> Agent 间消息通讯与广播
-          </li>
-          <li style="display: flex; align-items: center; gap: 10px; font-size: 14px; color: var(--text-secondary);">
-            <span style="color: var(--green);">✓</span> 文件编辑锁防止冲突
-          </li>
-          <li style="display: flex; align-items: center; gap: 10px; font-size: 14px; color: var(--text-secondary);">
-            <span style="color: var(--green);">✓</span> @提及直接与指定 Agent 对话
-          </li>
-          <li style="display: flex; align-items: center; gap: 10px; font-size: 14px; color: var(--text-secondary);">
-            <span style="color: var(--green);">✓</span> 并发控制与 Token 预算管理
-          </li>
-        </ul>
+      </header>
+
+      <div class="catalog-tools reveal">
+        <div class="chips" role="tablist" aria-label="插件分类"></div>
+        <label class="search">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"/><path d="M20 20l-3.5-3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          <input type="search" placeholder="搜索插件名称或能力" aria-label="搜索插件">
+        </label>
+      </div>
+
+      <div class="plugin-grid" aria-live="polite"></div>
+      <p class="catalog-meta"></p>
+
+      <div class="creator reveal">
+        <div>
+          <p class="mini-title">没有想要的？自己做一个</p>
+          <h3>在对话里创建插件，装好即可在当前会话调用。</h3>
+          <p>
+            Plugin Creator 提供 ui-app、ts-tool、ts-npx、node-sidecar、node-tool 五种模板，由 Agent 生成、构建、签名并安装。
+            插件可以同时向 Agent 声明工具、向你贡献界面。
+          </p>
+        </div>
+        <a class="btn btn-ghost" href="https://github.com/silent-rs/Tiangong/blob/main/docs/plugin-development.md" target="_blank" rel="noopener">插件开发指南 <span aria-hidden="true">→</span></a>
       </div>
     </div>
-  </div>
-</section>
+  </section>
 
-<!-- ── Automation ───────────────────────────────────────── -->
-
-<section class="automation" id="automation">
-  <div class="container">
-    <div class="features-header">
-      <div class="section-label">自动化触发层</div>
-      <h2 class="section-title">让 AI 主动<span class="gradient-text">为你工作</span></h2>
-      <p class="section-desc">不只是被动回答。通过 Cron 定时、Webhook 外部触发，让天工按计划自动执行任务。</p>
-    </div>
-    <div class="auto-grid">
-      <div class="auto-card">
-        <div class="auto-card-icon">⏰</div>
-        <h3>Cron 定时任务</h3>
-        <p>标准 Cron 表达式，Server 启动时自动恢复。支持关联已有会话复用上下文。</p>
-        <code>0 9 * * * → 每天早上 9 点</code>
-      </div>
-      <div class="auto-card">
-        <div class="auto-card-icon">🔗</div>
-        <h3>Webhook 触发</h3>
-        <p>外部系统通过 HTTP 端点触发执行，支持 HMAC-SHA256 签名验证，安全接入 GitHub、GitLab 等。</p>
-        <code>POST /api/v1/webhooks/:id/invoke</code>
-      </div>
-      <div class="auto-card">
-        <div class="auto-card-icon">📊</div>
-        <h3>执行历史追踪</h3>
-        <p>每次执行自动记录状态、耗时和结果摘要。前端管理界面支持查看、创建、启停和手动触发。</p>
-        <code>GET /api/v1/jobs/:id/runs</code>
+  <!-- Gallery -->
+  <section class="section gallery">
+    <div class="wrap">
+      <header class="section-head reveal">
+        <p class="kicker"><span class="tag">界面</span>Inside Tiangong</p>
+        <h2>一个工作台，人和 Agent 一起用。</h2>
+      </header>
+      <div class="gallery-grid">
+        <figure class="g-item g-wide reveal">
+          <img src="assets/img/main.jpg" alt="天工主界面" loading="lazy">
+          <figcaption><strong>主界面</strong>对话、工具调用过程与运行状态，执行中可展开查看调用参数。</figcaption>
+        </figure>
+        <figure class="g-item reveal">
+          <img src="assets/img/subagent.jpg" alt="持久 Subagent 管理" loading="lazy">
+          <figcaption><strong>持久 Subagent</strong>独立身份、指令与记忆，按需招募、激活与派活。</figcaption>
+        </figure>
+        <figure class="g-item reveal">
+          <img src="assets/img/plugins.jpg" alt="插件管理" loading="lazy">
+          <figcaption><strong>插件管理</strong>安装、启停、更新与后台服务状态一目了然。</figcaption>
+        </figure>
+        <figure class="g-item g-wide reveal">
+          <img src="assets/img/models.jpg" alt="模型配置" loading="lazy">
+          <figcaption><strong>模型配置</strong>DeepSeek V4、ChatGPT 账号登录、Anthropic 与 OpenAI 兼容供应商，会话内随时切换。</figcaption>
+        </figure>
       </div>
     </div>
-  </div>
-</section>
+  </section>
 
-<!-- ── Install ──────────────────────────────────────────── -->
+  <!-- Host -->
+  <section class="section host" id="host">
+    <div class="wrap host-layout">
+      <header class="section-head reveal">
+        <p class="kicker"><span class="tag">架构</span>Host + Plugins</p>
+        <h2>宿主只做骨架，<br>能力交给插件。</h2>
+        <p class="lead">
+          主程序保持精简、可治理；能力以插件独立演进。插件声明权限与能力，执行边界由宿主根据会话决定，插件无法自行扩大权限。
+        </p>
+      </header>
 
-<section class="install" id="install">
-  <div class="container">
-    <div class="install-layout">
-      <div>
-        <div class="section-label">快速开始</div>
-        <h2 class="section-title">三步开始使用<span class="gradient-text">天工</span></h2>
-        <div class="install-steps">
-          <div class="install-step">
-            <div class="install-step-num">1</div>
-            <div>
-              <h4>下载安装</h4>
-              <p>从 GitHub Releases 下载对应系统的安装包。支持 macOS、Windows、Linux。</p>
-            </div>
-          </div>
-          <div class="install-step">
-            <div class="install-step-num">2</div>
-            <div>
-              <h4>配置模型</h4>
-              <p>在设置页面添加 API Key，推荐使用 DeepSeek 或智谱 GLM。也支持自定义供应商接入。</p>
-            </div>
-          </div>
-          <div class="install-step">
-            <div class="install-step-num">3</div>
-            <div>
-              <h4>开始对话</h4>
-              <p>打开天工，直接描述你的任务。天工会自动判断是否需要调用工具、创建 Agent 或执行命令。</p>
-            </div>
+      <div class="stack reveal" aria-label="天工架构示意">
+        <div class="layer layer-plugins">
+          <p>插件</p>
+          <div class="pills">
+            <span class="hot">computer-use</span><span>browser</span><span>terminal</span><span>memory</span>
+            <span>subagent</span><span>scheduler</span><span>mcp</span><span>skill</span><span>coding</span><span>…</span>
           </div>
         </div>
-      </div>
-      <div>
-        <div class="terminal">
-          <div class="terminal-bar">
-            <div class="terminal-dot" style="background: #ff5f57;"></div>
-            <div class="terminal-dot" style="background: #febc2e;"></div>
-            <div class="terminal-dot" style="background: #28c840;"></div>
-          </div>
-          <div class="terminal-body">
-            <div><span class="comment"># 桌面 GUI 模式</span></div>
-            <div><span class="prompt">$</span> <span class="cmd">tiangong</span></div>
-            <div style="height: 8px;"></div>
-            <div><span class="comment"># CLI 命令行模式</span></div>
-            <div><span class="prompt">$</span> <span class="cmd">tiangong cli</span></div>
-            <div style="height: 8px;"></div>
-            <div><span class="comment"># Server 模式（后台运行）</span></div>
-            <div><span class="prompt">$</span> <span class="cmd">tiangong server -d</span></div>
-            <div><span class="output">Server 启动：http://127.0.0.1:8080</span></div>
-            <div style="height: 8px;"></div>
-            <div><span class="comment"># 检查更新</span></div>
-            <div><span class="prompt">$</span> <span class="cmd">tiangong update --check</span></div>
-            <div><span class="output">当前版本 v0.4.0，已是最新</span></div>
-          </div>
+        <div class="layer">
+          <p>插件运行时</p>
+          <span>注册 · 签名信任 · 工具命名 <code>{插件id}__{工具名}</code> · UI 挂载点 · Sidecar 生命周期</span>
+        </div>
+        <div class="layer">
+          <p>Agent 循环 · 模型接入</p>
+          <span>ReAct · 上下文压缩 · DeepSeek V4 · ChatGPT（Codex OAuth）· Anthropic · OpenAI 兼容</span>
+        </div>
+        <div class="layer layer-sandbox">
+          <p>系统沙箱</p>
+          <span>Seatbelt · bubblewrap · AppContainer + Job Object，签名自检失败拒绝启动，不静默降级</span>
         </div>
       </div>
     </div>
-  </div>
-</section>
+  </section>
 
-<!-- ── Footer ───────────────────────────────────────────── -->
+  <!-- Install -->
+  <section class="section install" id="install">
+    <div class="wrap">
+      <header class="section-head center reveal">
+        <p class="kicker"><span class="tag">安装</span>Get Tiangong</p>
+        <h2>下载天工，从装上 Computer Use 开始。</h2>
+        <p class="lead">安装后在「设置 → 插件管理」中安装 Computer Use、浏览器与终端插件。</p>
+      </header>
 
-<footer>
-  <div class="container">
-    <div class="footer-content">
-      <div class="footer-brand">
-        <div class="nav-logo" style="width: 24px; height: 24px; font-size: 12px;">天</div>
-        <span>Silent-Tiangong · 面向个人工作流的桌面级 AI 自动化中枢</span>
+      <div class="dl-grid">
+        <a class="dl reveal" href="https://github.com/silent-rs/Tiangong/releases/latest" target="_blank" rel="noopener">
+          <span class="dl-os">macOS</span>
+          <span class="dl-file">.dmg · Apple Silicon</span>
+          <span class="dl-note">已签名并公证</span>
+        </a>
+        <a class="dl reveal" href="https://github.com/silent-rs/Tiangong/releases/latest" target="_blank" rel="noopener">
+          <span class="dl-os">Windows</span>
+          <span class="dl-file">.msi · .exe</span>
+          <span class="dl-note">x86_64</span>
+        </a>
+        <a class="dl reveal" href="https://github.com/silent-rs/Tiangong/releases/latest" target="_blank" rel="noopener">
+          <span class="dl-os">Linux</span>
+          <span class="dl-file">.AppImage · .deb · .rpm</span>
+          <span class="dl-note">x86_64 · Computer Use 支持有限</span>
+        </a>
       </div>
-      <div class="footer-links">
-        <a href="https://github.com/silent-rs/silent-Tiangong" target="_blank">GitHub</a>
-        <a href="https://github.com/silent-rs/silent-Tiangong/releases" target="_blank">下载</a>
-        <a href="https://github.com/silent-rs/silent-Tiangong/issues" target="_blank">反馈</a>
+
+      <div class="terminal-snippet reveal">
+        <div class="window-bar"><span></span><span></span><span></span><p>无桌面服务器</p></div>
+<pre><code><span class="c"># 源码编译纯 CLI / Server 二进制</span>
+git clone https://github.com/silent-rs/Tiangong.git && cd Tiangong
+cargo build --release
+
+<span class="c"># 用 ChatGPT 账号登录，或配置 DeepSeek 等供应商</span>
+tiangong model chatgpt login --device
+tiangong server -d</code></pre>
+        <button class="copy" type="button" aria-label="复制命令">复制</button>
       </div>
     </div>
+  </section>
+
+</main>
+
+<footer class="footer">
+  <div class="wrap footer-inner">
+    <div class="brand">
+      <span class="brand-mark">工</span>
+      <span class="brand-name">天工 <em>Tiangong</em></span>
+    </div>
+    <nav aria-label="页脚">
+      <a href="https://github.com/silent-rs/Tiangong" target="_blank" rel="noopener">GitHub</a>
+      <a href="https://github.com/silent-rs/Tiangong/releases" target="_blank" rel="noopener">Releases</a>
+      <a href="https://github.com/silent-rs/Tiangong/blob/main/docs/plugin-development.md" target="_blank" rel="noopener">插件开发</a>
+      <a href="https://github.com/silent-rs/Tiangong/issues" target="_blank" rel="noopener">反馈</a>
+    </nav>
+    <p>Apache-2.0 · Built with Rust, Tauri &amp; <a href="https://github.com/silent-rs/silent" target="_blank" rel="noopener">silent</a></p>
   </div>
 </footer>
 
+<script src="assets/plugins.js"></script>
+<script src="assets/main.js"></script>
 </body>
 </html>
